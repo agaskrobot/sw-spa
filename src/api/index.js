@@ -1,1 +1,1 @@
-export { getMoviesList, getCharactersList } from './sw';
+export { getMoviesList, getCharactersList, getSearchResults } from './sw';

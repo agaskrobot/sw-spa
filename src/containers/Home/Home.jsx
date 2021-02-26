@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 import { getMoviesList, getCharactersList } from '../../api';
-import { Alert, Spinner } from '../../components';
+import { Alert, Spinner, EpisodeButton, CharacterButton, SearchBar } from '../../components';
 
 export function Home() {
   const [error, setError] = useState(null);
@@ -9,7 +9,11 @@ export function Home() {
   const [movies, setMovies] = useState([]);
   const [characters, setCharacters] = useState([]);
   const [selectedCharacter, setSelectedCharacter] = useState('');
-  const [selectedEpisodes, setSelectedEpisodes] = useState([]);
+  const [characterEpisodes, setCharacterEpisodes] = useState([]);
+  const [visibleEpisodes, setVisibleEpisodes] = useState([]);
+  const [activeEpisode, setActiveEpisode] = useState('');
+  const [translate, setTranslate] = useState(10);
+  const [opacity, setOpacity] = useState(0);
 
   const getMovies = () => {
     getMoviesList()
@@ -26,6 +30,7 @@ export function Home() {
     getCharactersList(page)
       .then((response) => {
         if (response.data.next) {
+          // Data is divided by pages so call all pages to get all characters
           let page = response.data.next.charAt(response.data.next.length - 1);
           getCharacters(page);
         }
@@ -42,20 +47,25 @@ export function Home() {
   };
 
   // Set selected character and episodes in which it appear
-  const handleCharacterClick = (e, url) => {
-    e.preventDefault();
+  const handleCharacterClick = (url) => {
     setSelectedCharacter(url);
-    let selectedEpisodes = movies.filter((movie) => movie.characters.find((character) => character === url));
+    let characterEpisodes = movies.filter((movie) => movie.characters.find((character) => character === url));
     let selectedEpisodesId = [];
-    selectedEpisodes.forEach((episode) => selectedEpisodesId.push(episode['episode_id']));
-    setSelectedEpisodes(selectedEpisodesId);
+    characterEpisodes.forEach((episode) => selectedEpisodesId.push(episode['episode_id']));
+    setCharacterEpisodes(selectedEpisodesId);
+  };
+
+  // Run animation for selected episode
+  const handleEpisodeClick = (episode) => {
+    setActiveEpisode(!visibleEpisodes.includes(episode) ? episode : '');
+    let newSelectedEpisodes = [...visibleEpisodes, episode];
+    setVisibleEpisodes(newSelectedEpisodes);
   };
 
   // When OnBlur  clean selected items
-  const handleOnBlur = (e) => {
-    e.preventDefault();
+  const handleOnBlur = () => {
     setSelectedCharacter('');
-    setSelectedEpisodes([]);
+    setCharacterEpisodes([]);
   };
 
   // useEffect loads all movies and characters.
@@ -65,41 +75,63 @@ export function Home() {
     getCharacters(1);
   }, []);
 
-  let selectedClass = 'text-yellow-300 text-xxl';
+  // Execute animation
+  useEffect(() => {
+    if (activeEpisode) {
+      let indexTranslate = 10;
+      let indexOpacity = 0;
+      const timer = setInterval(() => {
+        indexTranslate = indexTranslate - 1;
+        indexOpacity = indexOpacity + 25;
+        setTranslate(indexTranslate);
+        setOpacity(indexOpacity);
+      }, 30);
+      setTimeout(() => {
+        clearInterval(timer);
+      }, 300);
+    }
+  }, [activeEpisode]);
+
+  let sectionActiveClass = `transform translate-y-${translate} transition-opacity opacity-${opacity}`;
+  let sectionVisibleClass = 'transform translate-y-0 transition-opacity opacity-100';
 
   return (
     <>
       {loading ? (
         <Spinner />
       ) : (
-        <div className="flex flex-wrap md:px-20 flex-row text-xl justify-center text-sm font-light min-w-min w-screen">
+        <div className="flex flex-wrap md:px-10 flex-row text-xl justify-center text-sm font-light min-w-min w-screen">
           <Alert error={error} onClose={() => setError(null)} />
           <div>
+            <SearchBar onError={setError} />
             {movies.map((movie) => (
               <div key={movie['episode_id']} className="flex justify-start mt-6">
-                <div
-                  className={`${
-                    selectedEpisodes.includes(movie['episode_id']) ? selectedClass : ''
-                  } text-xxl px-4 mr-5 font-semibold`}
-                >
-                  Episode {movie['episode_id']}
-                </div>
-                <div className="flex-col">
-                  {movie.characters.map((character, index) => {
-                    let person = characters.find((char) => char.url === character);
-                    person = person ? person : '';
-                    return (
-                      <button
-                        className={`flex ${selectedCharacter === person.url ? selectedClass : ''} focus:outline-none`}
-                        onClick={(e) => handleCharacterClick(e, person.url)}
-                        key={index}
-                        onBlur={handleOnBlur}
-                      >
-                        {person ? person.name : ''}
-                      </button>
-                    );
-                  })}
-                </div>
+                <EpisodeButton
+                  id={movie['episode_id']}
+                  onClick={() => handleEpisodeClick(movie['episode_id'])}
+                  active={characterEpisodes.includes(movie['episode_id'])}
+                />
+                {visibleEpisodes.includes(movie['episode_id']) ? (
+                  <div
+                    className={`flex-col ${
+                      activeEpisode === movie['episode_id'] ? sectionActiveClass : sectionVisibleClass
+                    }`}
+                  >
+                    {movie.characters.map((character, index) => {
+                      let person = characters.find((char) => char.url === character);
+                      person = person ? person : '';
+                      return (
+                        <CharacterButton
+                          active={selectedCharacter === person.url}
+                          name={person ? person.name : ''}
+                          onClick={() => handleCharacterClick(person.url)}
+                          key={index}
+                          onBlur={handleOnBlur}
+                        />
+                      );
+                    })}
+                  </div>
+                ) : null}
               </div>
             ))}
           </div>
