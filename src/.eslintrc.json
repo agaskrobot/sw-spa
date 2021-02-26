@@ -1,0 +1,62 @@
+{
+    "env": {
+        "browser": true,
+        "node": true,
+        "es6": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "prettier",
+        "prettier/react",
+        "plugin:react/recommended"
+    ],
+    "parserOptions": {
+        "ecmaFeatures": {
+            "jsx": true
+        },
+        "ecmaVersion": 2018,
+        "sourceType": "module"
+    },
+    "parser": "babel-eslint",
+    "plugins": [
+        "react",
+        "prettier",
+        "babel"
+    ],
+    "settings": {
+      "react": {
+       "pragma": "React",
+       "version": "17.0.1"
+      }
+    },
+    "rules": {
+      "indent": ["error", 2, {
+        "SwitchCase": 1
+      }],
+      "linebreak-style": ["error", "unix"],
+      "quotes": ["error", "single"],
+      "semi": ["error", "always"],
+      "no-console": ["warn", { "allow": ["warn", "error"] }],
+      "no-duplicate-imports": "error",
+      "no-unused-vars": "warn",
+      "no-dupe-args": "error",
+      "no-dupe-keys": "error",
+      "no-duplicate-case": "error",
+      "no-sparse-arrays": "error",
+      "curly": "error",
+      "eqeqeq": "error",
+      "no-multi-spaces": "error",
+      "func-call-spacing": "error",
+      "no-multiple-empty-lines": ["error", { "max": 1, "maxEOF": 0, "maxBOF": 0 }],
+      "no-trailing-spaces": "warn",
+      "arrow-parens": "error",
+      "arrow-spacing": "error",
+      "no-var": "error",
+      "prettier/prettier": "warn",
+      "jsx-a11y/anchor-is-valid": "off",
+      "react/jsx-uses-react": "off",
+      "react/prop-types": "warn",
+      "react/react-in-jsx-scope": "off",
+      "react-hooks/exhaustive-deps": "off"
+    }
+}
